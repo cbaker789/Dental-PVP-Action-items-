@@ -43,18 +43,18 @@ def generate_outreach_file(
     current_date_str: str | None = None,
     digits_only_phone: bool = False,
 ):
-    """
-    Convert cleaned query results to a single outreach CSV.
-    Output columns:
-      personLastName, personMidName, personFirstName, personCellPhone,
-      personHomePhone, personWorkPhone, personPrefLanguage, dob, gender,
-      personID, PersonEmail
-    """
     if df is None or df.empty:
         print("⚠️ No data to create outreach file.")
         return None
 
     df = df.copy()
+
+    # 🔹 Filter for Goleta Neighborhood Clinic
+    if "Location Name" in df.columns:
+        df = df[df["Location Name"].str.contains("Goleta Dental", case=False, na=False)]
+        if df.empty:
+            print("⚠️ No records found.")
+            return None
 
     # Recode Language
     if "Language" in df.columns:
@@ -102,7 +102,7 @@ def generate_outreach_file(
         }
     )
 
-    # Remove duplicate personIDs (keeping the first occurrence)
+    # Remove duplicate personIDs
     if "personID" in cleaned.columns:
         cleaned = cleaned.drop_duplicates(subset=["personID"])
 
@@ -127,6 +127,7 @@ def generate_outreach_file(
     cleaned.to_csv(out_path, index=False)
     print(f"📤 Outreach file written: {out_path}")
     return out_path
+
 # ---------- Main query function ----------
 def run_main_template_query(
     output_dir: str | None = None,
